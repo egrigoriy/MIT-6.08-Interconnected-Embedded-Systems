@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include "dome_image.h"
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
-const uint32_t PAUSE = 1000;
+const uint32_t PAUSE = 3000;
 uint32_t timer;
 uint8_t draw_state;
 const uint8_t NUM_DRAW_STATES = 5;
@@ -51,7 +51,7 @@ void draw_stuff(){
     }else if(draw_state==1){
       tft.setTextColor(TFT_RED, TFT_LIGHTGREY);
       tft.fillScreen(TFT_LIGHTGREY);
-      tft.drawString("THE DOME", 40, 0, 2); //viewable on Screen 
+      tft.drawString("THE MIT DOME", 10, 0, 2); //viewable on Screen 
       tft.drawXBitmap(0, 30, mit_608_dome, dome_608_width, dome_608_height, TFT_RED);
     }else if (draw_state==2){
       tft.fillScreen(TFT_BLACK);
@@ -61,6 +61,7 @@ void draw_stuff(){
       tft.fillScreen(TFT_YELLOW);
       tft.drawRect(10,10,5,30,TFT_BLUE);
       tft.fillRect(50,50,20,20,TFT_RED);
+      tft.fillRect(80,80,30,50,TFT_GREEN);
     }else if (draw_state==4){
       tft.fillScreen(TFT_WHITE);
       for (int i=0; i<160; i+=4){
