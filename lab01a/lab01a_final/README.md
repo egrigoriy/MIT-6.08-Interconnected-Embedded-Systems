@@ -8,6 +8,6 @@ Your final system that you and your partner make should operate in the following
 4. The system can continue to toggle between these two images based on button presses forever.
 
 The state diagram looks like the following:
-![This is an alt text.](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_final_fsm.svg"This is a sample image.")
+![FSM](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_final_fsm.svg")
 
-The result can be shawn [here](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_video.mp4).
+The result can be shawn here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_video.mp4).
