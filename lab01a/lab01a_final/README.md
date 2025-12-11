@@ -12,5 +12,5 @@ The state diagram looks like the following:
 
 The result can be shawn here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_video.mp4).
 
-![State1](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_final_state1.jpg)
-![State2](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_final_state2.jpg)
+![State1](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_final_state1.png)
+![State2](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01a/lab01a_final/lab01a_final_state2.png)
