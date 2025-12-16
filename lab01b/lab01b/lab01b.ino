@@ -118,21 +118,26 @@ void setup() {
 */
 void loop() {
   if ((millis() - last_time) > GETTING_PERIOD) { // GETTING_PERIOD since last lookup? Look up again
-    //formulate GET request...first line:
-    sprintf(request_buffer, "GET https://egrigoriy.pythonanywhere.com/iot608/numbersapi/%d/trivia/ HTTP/1.1\r\n", random(200));
-    strcat(request_buffer, "Host: egrigoriy.pythonanywhere.com\r\n"); //add more to the end
-    strcat(request_buffer, "\r\n"); //add blank line!
+    build_http_get();
     //submit to function that performs GET.  It will return output using response_buffer char array
     do_http_GET("egrigoriy.pythonanywhere.com", request_buffer, response_buffer, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
     Serial.println(response_buffer); //print to serial monitor
-    tft.fillScreen(TFT_BLACK); //black out TFT Screen
-    tft.setCursor(0, 0, 1);
-    tft.println(response_buffer);
+    http_response_tft();
     last_time = millis();//remember when this happened so we perform next lookup in GETTING_PERIOD milliseconds
   }
 }
 
-
+void http_response_tft() {
+    tft.fillScreen(TFT_BLACK); //black out TFT Screen
+    tft.setCursor(0, 0, 1);
+    tft.println(response_buffer);
+}
+void build_http_get() {
+      //formulate GET request...first line:
+    sprintf(request_buffer, "GET https://egrigoriy.pythonanywhere.com/iot608/numbersapi/%d/trivia/ HTTP/1.1\r\n", random(200));
+    strcat(request_buffer, "Host: egrigoriy.pythonanywhere.com\r\n"); //add more to the end
+    strcat(request_buffer, "\r\n"); //add blank line!
+}
 /*----------------------------------
    char_append Function:
    Arguments:

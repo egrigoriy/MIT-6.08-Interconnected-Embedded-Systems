@@ -3,11 +3,6 @@
 #include <SPI.h> //Used in support of TFT Display
 #include <string.h>  //used for some string handling and processing.
 
-const uint8_t IDLE = 0; //example definition
-const uint8_t DOWN = 1; //example...
-const uint8_t UP = 2; //change if you want!
-//add more if you want!!!
-
 TFT_eSPI tft = TFT_eSPI();  // Invoke library, pins defined in User_Setup.h
 
 //Some constants and some resources:
@@ -18,10 +13,11 @@ const uint16_t IN_BUFFER_SIZE = 1000; //size of buffer to hold HTTP request
 const uint16_t OUT_BUFFER_SIZE = 1000; //size of buffer to hold HTTP response
 char request_buffer[IN_BUFFER_SIZE]; //char array buffer to hold HTTP request
 char response_buffer[OUT_BUFFER_SIZE]; //char array buffer to hold HTTP response
+const int DEBOUNCE_TIMEOUT = 10;
+bool was_previous_push = false;
 
-
-char network[] = "608_24G";
-char password[] = "608g2020";
+char network[] = "klg-firpo-guest";
+char password[] = "QutYGJnU6M";
 
 uint8_t scanning = 0;//set to 1 if you'd like to scan for wifi networks (see below):
 /* Having network issues since there are 50 MIT and MIT_GUEST networks?. Do the following:
@@ -44,10 +40,91 @@ uint8_t channel = 1; //network channel on 2.4 GHz
 byte bssid[] = {0x04, 0x95, 0xE6, 0xAE, 0xDB, 0x41}; //6 byte MAC address of AP you're targeting.
 
 
-const int BUTTON = 45; //pin connected to button 
-uint8_t state;  //system state (feel free to use)
+const int BUTTON = 4; //pin connected to button 
 uint8_t num_count; //variable for storing the number of times the button has been pressed before timeout
 unsigned long timer;  //used for storing millis() readings.
+
+enum states {
+  IDLE,
+  UP,
+  DOWN
+};
+
+states previous_state, state;
+
+void idle() {
+  // If we are entering the state, do initialization stuff
+  if (state != previous_state) {
+    previous_state = state;
+    reset_timer();
+  }
+
+  // Perform state tasks
+
+  // Check for state transitions
+  if (isPushed()) {
+    previous_state = state;
+    num_count = 0;
+    state = DOWN;
+  } else if (millis() - timer > GETTING_PERIOD) {
+    build_http_get(request_buffer);
+    do_http_GET("egrigoriy.pythonanywhere.com", request_buffer, response_buffer, OUT_BUFFER_SIZE, RESPONSE_TIMEOUT, true);
+    http_response_tft();
+    Serial.println(response_buffer); //print to serial monitor
+  }
+  // If we are leaving the state, do clean up stuff
+  if (state != previous_state) {
+  }
+}
+
+void down() {
+  // If we are entering the state, do initialization stuff
+  if (state != previous_state) {
+    previous_state = state;
+  }
+
+  // Perform state tasks
+  Serial.println("pushed");
+
+  // Check for state transitions
+  if (!isPushed()) {
+    previous_state = state;
+    state = UP;
+  }
+
+  // If we are leaving the state, do clean up stuff
+  if (state != previous_state) {
+  }
+}
+
+void up() {
+  // If we are entering the state, do initialization stuff
+  if (state != previous_state) {
+    previous_state = state;
+    reset_timer();
+    num_count ++;
+  }
+
+  // Perform state tasks
+  Serial.println(num_count);
+
+  // Check for state transitions
+  if (isPushed()) {
+    previous_state = state;
+    state = DOWN;
+  } else if (millis() - timer > BUTTON_TIMEOUT) {
+    previous_state = state;
+    state = IDLE;
+  }
+
+  // If we are leaving the state, do clean up stuff
+  if (state != previous_state) {
+  }
+}
+
+void reset_timer() {
+  timer = millis();
+}
 
 void setup(){
   tft.init();  //init screen
@@ -104,12 +181,33 @@ void setup(){
   }
   pinMode(BUTTON, INPUT_PULLUP); //set input pin as an input!
   state = IDLE; //start system in IDLE state!
+  previous_state = UP;
+  reset_timer();
 }
 
 void loop(){
-  number_fsm(digitalRead(BUTTON)); //Call our FSM every time through the loop.
+  switch(state) {
+    case IDLE:
+      idle();
+      break;
+    case DOWN:
+      down();
+      break;
+    case UP:
+      up();
+      break;
+  }
 }
 
+void http_response_tft() {
+    tft.fillScreen(TFT_BLACK); //black out TFT Screen
+    tft.setCursor(0, 0, 1);
+    tft.println(response_buffer);
+}
+
+bool isPushed() {
+  return digitalRead(BUTTON) == 0;
+}
 
 /*------------------
  * number_fsm Function:
@@ -123,29 +221,14 @@ void number_fsm(uint8_t input){
   //This function should be non-blocking, meaning there should be minimal while loops and other things in it!
   //Feel free to call do_http_GET from this function
   //state variable globally defined at top
-  switch(state){
-    case IDLE:
-      //example state
-      //do logic here
-      // if (some condition){
-      // state = next_state_you_wanna_go_to;
-      //}
-      break; //don't forget break statements
-    case DOWN:
-      //another state...etc...
-      //do logic here 
-      break;
-    case UP:
-      //another state!
-      //do logic here
-      //add more states if you want! 
-      //etc....keep adding states if needed
-      break;
-  }
-  
 }
 
-
+void build_http_get(char* request_buffer) {
+    //formulate GET request...first line:
+    sprintf(request_buffer, "GET https://egrigoriy.pythonanywhere.com/iot608/numbersapi/%d/trivia/ HTTP/1.1\r\n", num_count);
+    strcat(request_buffer, "Host: egrigoriy.pythonanywhere.com\r\n"); //add more to the end
+    strcat(request_buffer, "\r\n"); //add blank line!
+}
 
 /*----------------------------------
  * char_append Function:
