@@ -8,6 +8,6 @@ Your assignment for this lab is to build a number-fact looker-upper. The number 
 4. 
 The system should be able to handle long presses by a user and only count them as one push.
 
-The result can be shawn here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01b/lab01b_assignement/lab01b_video.mp4).
+The result can be shawn here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01b/lab01b_assignment/lab01b_video.mp4).
 
-![Setup](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01b/lab01b_assignement/lab01b_setup.png)
+![Setup](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab01b/lab01b_assignment/lab01b.png)
