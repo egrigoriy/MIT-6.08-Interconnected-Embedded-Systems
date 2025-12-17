@@ -1,4 +1,4 @@
-## Lab1A: Final Assignment
+## Lab1B: Final Assignment
 
 Your assignment for this lab is to build a number-fact looker-upper. The number requested will be based on the number of button presses a user provides as input in quick succession. To be more specific:
 
