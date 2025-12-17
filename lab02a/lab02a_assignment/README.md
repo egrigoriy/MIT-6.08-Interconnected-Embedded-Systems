@@ -1,11 +1,8 @@
-## Lab2a: Final Assignment
+## Lab2a: Final Assignment: Step Counter
 
-Step Counter:
+An easy first thing to do is to treat the three acceleration values as depicting a acceleration vector in three-dimensional space and to then derive the magnitude of that vector. (If you don't remember how to determine the magnitude of a vector, that's ok; look it up online). Once we have a magnitude of the 3D acceleration we only have one value to worry about which makes processing it easier. Then, one very simple step counting algorithm is to find peaks in the magnitude of the acceleration experienced by the device. Each isolated peak corresponds to a step. The goal then becomes to process our signal to first find peaks, and then count those peaks as steps. This is graphically shown below:
 
-1. Your system will start at rest.
-2. Upon pressing and releasing your button, the system will wait for up to one second for another press and release. If the press-release sequence occurs, the system will restart its timeout and wait a second for another press-release, all the while tallying the number of times the button has been pressed and then released.
-3. Following at least one press-release sequence, if the button remains unpressed for more than one second, the system is to look up trivia on the number of presses that occured and display it on the LCD, before returning to rest.
-4. The system should be able to handle long presses by a user and only count them as one push.
+![Progressing from Magnitude of Acceleration to Peaks to Steps](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab02a/lab02a_assignment/plot.svg)
 
 The result can be shawn here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab02a/lab02a_assignment/lab02a_video.mp4).
 
