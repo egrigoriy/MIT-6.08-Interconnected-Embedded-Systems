@@ -4,6 +4,6 @@ An easy first thing to do is to treat the three acceleration values as depicting
 
 ![Progressing from Magnitude of Acceleration to Peaks to Steps](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab02a/lab02a_assignment/plot.svg)
 
-The result can be shawn here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab02a/lab02a_assignment/lab02a_video.mp4).
+The result can be seen here: (https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab02a/lab02a_assignment/lab02a_video.mp4).
 
 ![Setup](https://github.com/egrigoriy/MIT-6.08-Interconnected-Embedded-Systems/blob/main/lab02a/lab02a_assignment/lab02a_setup.jpg)
