@@ -50,10 +50,9 @@ const uint8_t BUTTON_TOTAL = 15; //pin connected to button
 MPU6050 imu; //imu object called, appropriately, imu
 float old_acc_mag;  //previous acc mag
 float older_acc_mag;  //previous prevoius acc mag
+float avg_acc_mag; // average acc mag
 float threshold = 10.5;
 const float ZOOM = 9.81; //for display (converts readings into m/s^2)...used for visualizing only
-
-//some suggested variables you can use or delete:
 
 enum post_states {
   POST_STATE_IDLE,
@@ -65,6 +64,7 @@ post_states post_state;
 
 enum step_states {
   STEP_STATE_IDLE,
+  STEP_STATE_CLEAR,
   STEP_STATE_RISE,
   STEP_STATE_FALL
 };
@@ -74,13 +74,12 @@ int steps = 0;
 int total_steps = 0;
 
 enum draw_states {
-  DRAW_STATE_IDLE,
+  DRAW_STATE_CLEAR, 
   DRAW_STATE_CURRENT,
-  DRAW_STATE_CLEAR,
   DRAW_STATE_TOTAL
 };
 
-draw_states draw_state, prior_draw_state;
+draw_states draw_state;
 
 void setup() {
   tft.init();  //init screen
@@ -155,18 +154,34 @@ void setup() {
   pinMode(BUTTON_POST, INPUT_PULLUP); //set input pin as an input!
   pinMode(BUTTON_TOTAL, INPUT_PULLUP); //set input pin as an input!
 
-  step_state = STEP_STATE_IDLE; //
+  //initialize FSMs
+  step_state = STEP_STATE_IDLE;
   post_state = POST_STATE_POST;
-  draw_state = DRAW_STATE_IDLE;
-  prior_draw_state = DRAW_STATE_IDLE;
-  tft.fillScreen(TFT_BLACK); //fill background
+  draw_state = DRAW_STATE_CLEAR;
 }
 
+// Returns true if a given button reading is 0 (input PULLUP case)
 bool isPushed(uint8_t button) {
   return button == 0;
 }
 
-void loop() {
+// Prints draw state
+void print_draw_state() {
+  switch(draw_state) {
+    case DRAW_STATE_CLEAR:
+      Serial.println("CLEAR");
+      break;
+    case DRAW_STATE_CURRENT:
+      Serial.println("CURRENT");
+      break;
+    case DRAW_STATE_TOTAL:
+      Serial.println("TOTAL");
+      break;
+  }
+}
+
+// Reads IMU data
+void read_imu_data() {
   //get IMU information:
   imu.readAccelData(imu.accelCount);
   float x, y, z;
@@ -174,25 +189,30 @@ void loop() {
   y = ZOOM * imu.accelCount[1] * imu.aRes;
   z = ZOOM * imu.accelCount[2] * imu.aRes;
   float acc_mag = sqrt(x * x + y * y + z * z);
-  float avg_acc_mag = 1.0 / 3.0 * (acc_mag + old_acc_mag + older_acc_mag);
+  avg_acc_mag = 1.0 / 3.0 * (acc_mag + old_acc_mag + older_acc_mag);
   older_acc_mag = old_acc_mag;
   old_acc_mag = acc_mag;
+}
+
+void loop() {
+  //read imu data"
+  read_imu_data();
 
   //get button readings:
   uint8_t button_clear = digitalRead(BUTTON_CLEAR);
   uint8_t button_post = digitalRead(BUTTON_POST);
   uint8_t button_total = digitalRead(BUTTON_TOTAL);
 
-  step_reporter_fsm(button_clear, avg_acc_mag); //run step_reporter_fsm (from lab02a)
-  post_reporter_fsm(button_post); //run post_reporter_fsm (written here)
+  //run all state machines
+  step_reporter_fsm(button_clear); //run step_reporter_fsm
+  post_reporter_fsm(button_post); //run post_reporter_fsm
   lcd_display(button_clear, button_total); //update display (minimize pixels you change)
-
+  // print_draw_state();
   while (millis() - primary_timer < LOOP_PERIOD); //wait for primary timer to increment
   primary_timer = millis();
 }
 
-//Post reporting state machine, uses button1 as input
-//use post_state for your state variable!
+//Post reporting state machine
 void post_reporter_fsm(uint8_t button_post) {
   switch (post_state) {
     case POST_STATE_IDLE:
@@ -212,24 +232,27 @@ void post_reporter_fsm(uint8_t button_post) {
       Serial.printf("\n POST REQUEST RETUNS: %s \n", response_buffer);
       total_steps = atoi(response_buffer);
       post_state = POST_STATE_IDLE;
-      step_state = STEP_STATE_IDLE;
+      step_state = STEP_STATE_CLEAR;
+      draw_state = DRAW_STATE_CLEAR;
       break;
   }
 }
 
-
-//Step Counting FSM from Lab02A.  (bring over and adapt global variables as needed!)
-void step_reporter_fsm(uint8_t button_clear, float avg_acc_mag) {
+//Step Counting FSM
+void step_reporter_fsm(uint8_t button_clear) {
   if (isPushed(button_clear)) {
-    step_state = STEP_STATE_IDLE;
+    step_state = STEP_STATE_CLEAR;
   }
 
   switch(step_state) {
     case STEP_STATE_IDLE:
-      steps = 0;
       if (avg_acc_mag > threshold) {
         step_state = STEP_STATE_RISE;
       }
+      break;
+    case STEP_STATE_CLEAR:
+      steps = 0;
+      step_state = STEP_STATE_IDLE;
       break;
     case STEP_STATE_RISE:
       if (avg_acc_mag < threshold) {
@@ -245,58 +268,43 @@ void step_reporter_fsm(uint8_t button_clear, float avg_acc_mag) {
   }
 }
 
-void draw_idle() {
-      draw_state = DRAW_STATE_CURRENT;
-      prior_draw_state = DRAW_STATE_IDLE;
+void draw_clear(uint8_t button_clear, uint8_t button_total) {
+  tft.fillScreen(TFT_BLACK); //fill background
+  if (isPushed(button_total)) {
+    draw_state = DRAW_STATE_TOTAL;
+  } else {
+    draw_state = DRAW_STATE_CURRENT;
+  }
 }
 
-void draw_current(uint8_t button_total) {
-      if (draw_state != prior_draw_state) {
-          tft.fillScreen(TFT_BLACK); //fill background
-          prior_draw_state = DRAW_STATE_CURRENT;
-      }
-      
-      tft.setCursor(0, 0);      
+void draw_current(uint8_t button_clear, uint8_t button_total) {
+    if (!isPushed(button_total)) {
+      tft.setCursor(0, 0);
       tft.print("Steps: "); tft.println(steps);
-
-      if (isPushed(button_total)) {
-        draw_state = DRAW_STATE_TOTAL;
-      }
+    }
+    if (isPushed(button_clear) || isPushed(button_total)) {
+      draw_state = DRAW_STATE_CLEAR;
+    }
 }
 
 void draw_total(uint8_t button_total) {
-      if (draw_state != prior_draw_state) {
-          tft.fillScreen(TFT_BLACK); //fill background
-          prior_draw_state = DRAW_STATE_TOTAL;
-      }
-
+  if (isPushed(button_total)) {
       tft.setCursor(0, 0);      
       tft.println("Total Steps");
       tft.print(USER); tft.print(" : "); tft.println(total_steps);
-
-      if (!isPushed(button_total)) {
-        draw_state = DRAW_STATE_CURRENT;
-      }
-}
-
-void draw_clear(uint8_t button_clear) {
-  if(isPushed(button_clear)) {
-    tft.fillScreen(TFT_BLACK); //fill background 
-    draw_state = DRAW_STATE_CURRENT;   
+  } else {
+    draw_state = DRAW_STATE_CLEAR;
   }
 }
 
 //Display information on LCD based on button value (stateless)
 void lcd_display(uint8_t button_clear, uint8_t button_total) {
   switch (draw_state) {
-    case DRAW_STATE_IDLE:
-      draw_idle();
+    case DRAW_STATE_CLEAR:
+      draw_clear(button_clear, button_total);
       break;
     case DRAW_STATE_CURRENT:
-      draw_current(button_total);
-      break;
-    case DRAW_STATE_CLEAR:
-      draw_clear(button_clear);
+      draw_current(button_clear, button_total);
       break;
     case DRAW_STATE_TOTAL:
       draw_total(button_total);
